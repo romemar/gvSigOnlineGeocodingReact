@@ -55,6 +55,7 @@
   width: 50%;
   margin: 1em auto;
   text-align: left;
+  position: 'absolute';
 }
 .geolookup__input {
   width: 100%;

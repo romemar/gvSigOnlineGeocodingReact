@@ -5,27 +5,16 @@ import Map from "../Map";
 import { Layers, TileLayer, VectorLayer} from "../Layers";
 import { fromLonLat, get } from 'ol/proj';
 import { osm, vector } from "../Source";
-import GeoJSON from 'ol/format/GeoJSON';
-import {  Circle as CircleStyle, Stroke, Style } from 'ol/style';
 
-let styles = {
-	'Point': new Style({
-		image: new CircleStyle({
-			radius: 10,
-			fill: null,
-			stroke: new Stroke({
-				color: 'magenta',
-			}),
-		}),
-	})
-};
+import SearchBox from './SearchBox'
+
 
 export default function SearchGvsig() {
 
   const [center, setCenter] = useState([-3.70256, 40.4165,]);
   const [zoom, setZoom] = useState(6);
-  const [geojsonObject, setGeojsonObject]=useState({})
-  const [showLayer1, setShowLayer1] = useState(false);
+ // const [geojsonObject, setGeojsonObject]=useState({})
+  //const [showLayer1, setShowLayer1] = useState(false);
   
 
   class gvSigGeocodeProvider {
@@ -84,24 +73,7 @@ export default function SearchGvsig() {
           var coordenadas= "lat: "+encontrados.lat+" - lng: "+encontrados.lng;
           setCenter([encontrados.lng,encontrados.lat])
           setZoom(14)
-          setGeojsonObject({"type": "FeatureCollection",
-          "features": [
-            {
-              "type": "Feature",
-              "properties": {
-                "kind": "county",
-                "name": "Wyandotte",
-                "state": "KS"
-              },
-              "geometry": {
-                "type": "Point",
-                "coordinates": [[encontrados.lng,encontrados.lat]]
-              }
-            }
-          ]});
-          showLayer1(true);
-          console.log('Datos geojsonObject:'+{geojsonObject})
-
+         
           console.log("Coordenadas ->"+coordenadas);
             alert(
               "Toca hacer zoom en" + coordenadas
@@ -125,23 +97,17 @@ export default function SearchGvsig() {
 
       <Map center={fromLonLat(center)} zoom={zoom}>
         <Geolookup
-          inputClassName="geolookup__input"
-          disableAutoLookup={false}
-          getSuggestLabel={getSuggestLabel}
-          geocodeProvider={myProvider}
-          radius="20"
-        />
+        inputClassName="geolookup__input"
+        disableAutoLookup={false}
+        getSuggestLabel={getSuggestLabel}
+        geocodeProvider={myProvider}
+        radius="20"
+      />
 				<Layers>
 					<TileLayer
 						source={osm()}
 						zIndex={0}
 					/>
-          {showLayer1 && (
-						<VectorLayer
-							source={vector({ features: new GeoJSON().readFeatures(geojsonObject, { featureProjection: get('EPSG:3857') }) })}
-							style={styles.Point}
-						/>
-					)}
 				</Layers>
 			</Map>
 
@@ -149,3 +115,55 @@ export default function SearchGvsig() {
     </div>
   );
 }
+
+{/*  
+import GeoJSON from 'ol/format/GeoJSON';
+import {  Circle as CircleStyle, Stroke, Style } from 'ol/style';
+
+let styles = {
+	'Point': new Style({
+		image: new CircleStyle({
+			radius: 10,
+			fill: null,
+			stroke: new Stroke({
+				color: 'magenta',
+			}),
+		}),
+	})
+};
+--------dentro de método geocode------
+ setGeojsonObject({"type": "FeatureCollection",
+          "features": [
+            {
+              "type": "Feature",
+              "properties": {
+                "kind": "county",
+                "name": "Wyandotte",
+                "state": "KS"
+              },
+              "geometry": {
+                "type": "Point",
+                "coordinates": [[encontrados.lng,encontrados.lat]]
+              }
+            }
+          ]});
+          showLayer1(true);
+          console.log('Datos geojsonObject:'+{geojsonObject})
+
+  ----------dentro de <Layers>
+   {showLayer1 && (
+						<VectorLayer
+							source={vector({ features: new GeoJSON().readFeatures(geojsonObject, { featureProjection: get('EPSG:3857') }) })}
+							style={styles.Point}
+						/>
+					)}
+
+          <Geolookup
+        inputClassName="geolookup__input"
+        disableAutoLookup={false}
+        getSuggestLabel={getSuggestLabel}
+        geocodeProvider={myProvider}
+        radius="20"
+      />
+
+*/}

@@ -5,5 +5,5 @@ import VectorLayer from "./VectorLayer";
 export {
 	Layers,
 	VectorLayer,
-	TileLayer
+	TileLayer,
 }

@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from "react"
 import "./Map.css";
 import MapContext from "./MapContext";
+import "ol/ol.css";
 import * as ol from "ol";
 
 
@@ -35,6 +36,10 @@ const Map = ({ children, zoom, center }) => {
       <MapContext.Provider value={{ map }}>
         <div ref={mapRef} className="ol-map">
           {children}
+        </div>
+        <div id="popup" className="ol-popup">
+          <button id="close-button" class="ol-popup-closer"/>
+          <div id="popup-content"></div>
         </div>
       </MapContext.Provider>
     )

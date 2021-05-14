@@ -18,10 +18,7 @@ import GeoJSON from "ol/format/GeoJSON";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMap, faMapMarkedAlt } from "@fortawesome/free-solid-svg-icons";
 
-
-
 const SearchBox = () => {
-
   const [options, setOptions] = useState();
   const [gvSigUrl, setGvSigUrl] = useState("https://localhost/gvsigonline");
   const [center, setCenter] = useState([-3.70256, 40.4165]);
@@ -48,8 +45,6 @@ const SearchBox = () => {
       </div>
     ),
   });
-
-
 
   const lookup = async (userInput) => {
     const candidatos = [];
@@ -89,8 +84,6 @@ const SearchBox = () => {
     }
     setOptions(candidatos);
   };
-
-
 
   // Con Geolookup las opciones de la lista () const getSuggestLabel = (s) => return s.address;};
   // EN ESTE CASO NUESTRA LISTA NO SON OBJECTOS, ES UN TITULO(Texto) CON LA DIRECCIÓN DEL OBJETO
@@ -170,8 +163,6 @@ const SearchBox = () => {
     // return new Promise((resolve, reject) => {});
   };
 
-
-
   //función borrar datos de búsqueda y volver a zoom inicial
   const onCLickDelete = () => {
     setCenter([-3.70256, 40.4165]);
@@ -181,8 +172,6 @@ const SearchBox = () => {
     setResultsSearch();
     setShowLayer(false);
   };
-
-
 
   return (
     <div className="App">
@@ -205,80 +194,54 @@ const SearchBox = () => {
             geocode(value);
           }}
         >
-          {resultsSearch ? (
+          
             <Input
               size="large"
               placeholder="Buscar..."
               suffix={
-                <Tooltip title="Borrar">
+                resultsSearch ? (
+                  <Tooltip title="Borrar">
+                    <Button
+                      size="small"
+                      shape="circle"
+                      icon={<ClearOutlined />}
+                      onClick={onCLickDelete}
+                    />
+                  </Tooltip>
+                ) : (
+                  ""
+                )
+              }
+              /*
+              addonAfter={           
+                <Tooltip title="Geocodificador inverso">
                   <Button
-                    size="small"
+                    style={{ marginLeft: 5 }}
                     shape="circle"
-                    icon={<ClearOutlined />}
-                    onClick={onCLickDelete}
+                    type={reverseGeocodingOn ? "" : "primary"}
+                    icon={<FontAwesomeIcon icon={faMapMarkedAlt} />}
+                    onClick={() => {
+                      setReverseGeocodingOn(!reverseGeocodingOn);
+                      console.log("Geocodificador inverso desactivado");
+                    }}
                   />
                 </Tooltip>
               }
-              addonAfter={
-                <Tooltip title="Geocodificador inverso">
-                  {reverseGeocodingOn ? (
-                    <Button
-                      style={{ marginLeft: 5 }}
-                      shape="circle"
-                      icon={<FontAwesomeIcon icon={faMapMarkedAlt} />}
-                      onClick={() => {
-                        setReverseGeocodingOn(false);
-                        console.log("Geocodificador inverso desactivado");
-                      }}
-                    />
-                  ) : (
-                    <Button
-                      style={{ marginLeft: 5 }}
-                      type="primary"
-                      shape="circle"
-                      icon={<FontAwesomeIcon icon={faMapMarkedAlt} />}
-                      onClick={() => {
-                        setReverseGeocodingOn(true);
-                        console.log("Geocodificador inverso activado");
-                      }}
-                    />
-                  )}
-                </Tooltip>
-              }
+              */
             />
-          ) : (
-            <Input
-              size="large"
-              placeholder="Buscar..."
-              addonAfter={
-                <Tooltip title="Geocodificador inverso">
-                  {reverseGeocodingOn ? (
-                    <Button
-                      style={{ marginLeft: 5 }}
-                      shape="circle"
-                      icon={<FontAwesomeIcon icon={faMapMarkedAlt} />}
-                      onClick={() => {
-                        setReverseGeocodingOn(false);
-                        console.log("Geocodificador inverso desactivado");
-                      }}
-                    />
-                  ) : (
-                    <Button
-                      style={{ marginLeft: 5 }}
-                      type="primary"
-                      shape="circle"
-                      icon={<FontAwesomeIcon icon={faMapMarkedAlt} />}
-                      onClick={() => {
-                        setReverseGeocodingOn(true);
-                        console.log("Geocodificador inverso activado");
-                      }}
-                    />
-                  )}
-                </Tooltip>
-              }
-            />
-          )}
         </AutoComplete>
+
+        <Tooltip title="Geocodificador inverso">
+          <Button
+            style={{ marginLeft: 5 }}
+            shape="circle"
+            type={reverseGeocodingOn ? "" : "primary"}
+            icon={<FontAwesomeIcon icon={faMapMarkedAlt} />}
+            onClick={() => {
+              setReverseGeocodingOn(!reverseGeocodingOn);
+            }}
+          />
+        </Tooltip>
       </div>
 
       <div>
@@ -289,7 +252,6 @@ const SearchBox = () => {
               zIndex={0}
               geoOn={reverseGeocodingOn}
               url={gvSigUrl}
-              center={center}
             />
             {showLayer && (
               <VectorLayer
@@ -308,8 +270,6 @@ const SearchBox = () => {
     </div>
   );
 };
-
-
 
 let styles = {
   Point: new Style({

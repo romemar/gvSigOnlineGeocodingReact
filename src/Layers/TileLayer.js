@@ -2,24 +2,21 @@ import React, { useContext, useEffect, useState } from "react";
 import MapContext from "../Map/MapContext";
 import OLTileLayer from "ol/layer/Tile";
 import { fromLonLat, toLonLat } from "ol/proj";
-import Overlay from "ol/Overlay.js";
-//import Popup from 'ol/overlay'
+import { unByKey } from "ol/Observable";
+import Overlay from "ol/Overlay";
 
 const TileLayer = ({ source, zIndex = 0, geoOn, url }) => {
-
   const { map } = useContext(MapContext);
-
+  
   const allowRevGeo = geoOn;
   const gvSigUrl = url;
-  const [popupPosition, setPopupPosition] = useState([0, 0]);
-  const [popupText, setPopupText] = useState("here");
-  const popupElement = React.createElement(
-    "div",
-    { className: "ol-popup" },
-    popupText
-  );
+  const [keyEvent, setKeyEvent] = useState();
 
-  const reverseGeocode = (evt, url) => {
+  var closerButton = document.getElementById('close-button');
+  
+  //función geocodificador inverso
+
+  const reverseGeocode = (evt, url, overlay) => {
     var coord = toLonLat(evt.coordinate);
     console.log(coord);
     var type = "new_cartociudad";
@@ -53,45 +50,43 @@ const TileLayer = ({ source, zIndex = 0, geoOn, url }) => {
 
         //setCenter(fromLonLat([json.lng,json.lat]))
         //setZoom(14)
-        let coordLocation = fromLonLat([json.lng, json.lat]);
-        setPopupPosition(coordLocation);
 
-        console.log(coordLocation);
-        var mensaje =
-          "Dirección: " +
-          JSON.stringify(json.tip_via) +
-          JSON.stringify(json.address) +
-          ", " +
-          JSON.stringify(json.portalNumber) +
-          "\n" +
+        let popupPosition = fromLonLat([json.lng, json.lat]);
+
+        console.log(popupPosition);
+
+
+        var popupText =
+         "<h4><strong>"+JSON.stringify(json.tip_via) +JSON.stringify(json.address)+", "+JSON.stringify(json.portalNumber) +"</strong></h4>"+
+          "<p>"+
           JSON.stringify(json.muni) +
           ", " +
           JSON.stringify(json.province) +
-          "\n" +
+          "," +
           JSON.stringify(json.postalCode) +
           ", " +
           JSON.stringify(json.comunidadAutonoma) +
-          ", Coordenadas: " +
-          coordLocation;
-        alert(mensaje);
-        setPopupText(mensaje);
+        "</p>"
+      
 
-        /*
-        //map.overlays.setPosition(evt.coordinate)
-          //setPopupCoord(evt.coordinate);
-          //alert(toLonLat(evt.coordinate))
-          //console.log(toLonLat(evt.coordinate))
-  
-          get_location_address: {"id":"450540332179","province":"Toledo","comunidadAutonoma":"Castilla-La Mancha","muni":"Corral de Almaguer",
-          "type":null,"address":"AP-36","postalCode":"45880","poblacion":null,"geom":"POINT (-3.1208884461448116 39.68808214367244)","tip_via":null,
-          "lat":39.68808214367244,"lng":-3.1208884461448116,"portalNumber":45,"stateMsg":"Resultado exacto de la bÃºsqueda","state":1,"priority":0,
-          "countryCode":"011","refCatastral":null,"source":"new_cartociudad","srs":"EPSG:4258"}
-      */
+        var content = document.getElementById('popup-content');
+        content.innerHTML=popupText
+       /*
+        let overlay = new Overlay({
+          element: document.getElementById("popup"),
+          autoPan: true,
+          autoPanAnimation: {
+            duration: 250,
+          },
+        });
+        
+        map.addOverlay(overlay)
+        */
+        overlay.setPosition(popupPosition);
       })
       .catch((err) => console.error(err.message));
   };
 
-  
   useEffect(() => {
     if (!map) return;
 
@@ -103,15 +98,6 @@ const TileLayer = ({ source, zIndex = 0, geoOn, url }) => {
 
     map.addLayer(tileLayer);
     tileLayer.setZIndex(zIndex);
-    /*
-    const overlay = new Overlay({
-      position: popupPosition,
-      element: popupElement,
-      positioning: 'center-center',
-      stopEvent: false
-    });
-    map.addOverlay(overlay);
-*/
 
     return () => {
       if (map) {
@@ -124,46 +110,52 @@ const TileLayer = ({ source, zIndex = 0, geoOn, url }) => {
     if (!map) return;
     console.log("Activado? " + allowRevGeo);
 
-    if (allowRevGeo) {
-      map.on("singleclick", (evt) => {
-        reverseGeocode(evt, gvSigUrl);
+
+    let overlay = new Overlay({
+      element: document.getElementById("popup"),
+      autoPan: true,
+      autoPanAnimation: {
+        duration: 250,
+      },
+    });
+    //closerButton.onClick(e => overlay.setPosition(null))
+    map.addOverlay(overlay);
+
+
+    if (allowRevGeo === true) {
+      //obtenemos la uniqueKey del evento
+      var evtKey = map.on("singleclick", (evt) => {
+        reverseGeocode(evt, gvSigUrl, overlay); 
       });
-    } else {
-      map.un("singleclick", (evt) => {
-        reverseGeocode(evt, gvSigUrl);
-      });
+     
+      setKeyEvent(evtKey);
+      
     }
 
-    /*
-    if(!allowRevGeo) { 
-    map.un("singleclick", (evt) => {
-        reverseGeocode(evt, gvSigUrl);
-      })
-  }
+    if (allowRevGeo === false) {
+      //función que deshace el evento pasandole su key
+      unByKey(keyEvent);
+      overlay.setPosition(null);
+      
 
-  if(!allowRevGeo) { 
-      map.removeEventListener('singleclick');
+      /* ESTOS MÉTODOS NO FUNCIONAN
+        map.removeEventListener('singleclick');
+        map.un("singleclick", (evt) => {
+          reverseGeocode(evt, gvSigUrl);
+        })
+        */
     }
   
-  */
-    /*
-    const overlay = new Overlay({
-      position: popupPosition,
-      element: popupElement,
-      positioning: 'center-center',
-      stopEvent: false
-    });
-    map.addOverlay(overlay);
-*/
 
-return () => {
-  if (map) {
-    map.un("singleclick", (evt) => {
-      reverseGeocode(evt, gvSigUrl);
-    });
-  }
-};
+    return () => {
+      if (map) {
+        map.un("singleclick", (evt) => {
+          reverseGeocode(evt, gvSigUrl);
+        });
+      }
+    };
   }, [allowRevGeo]);
+
   return null;
 };
 export default TileLayer;

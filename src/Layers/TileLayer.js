@@ -3,18 +3,15 @@ import MapContext from "../Map/MapContext";
 import OLTileLayer from "ol/layer/Tile";
 import { fromLonLat, toLonLat } from "ol/proj";
 import { unByKey } from "ol/Observable";
-import Overlay from "ol/Overlay";
 
-const TileLayer = ({ source, zIndex = 0, geoOn, url }) => {
-  const { map } = useContext(MapContext);
-  
+const TileLayer = ({ source, zIndex = 0, geoOn, url, center }) => {
+  const { map, overlay } = useContext(MapContext);
+
   const allowRevGeo = geoOn;
   const gvSigUrl = url;
   const [keyEvent, setKeyEvent] = useState();
 
-  var closerButton = document.getElementById('close-button');
-  
-  //función geocodificador inverso
+  //--------función geocodificador inverso--------------
 
   const reverseGeocode = (evt, url, overlay) => {
     var coord = toLonLat(evt.coordinate);
@@ -55,10 +52,14 @@ const TileLayer = ({ source, zIndex = 0, geoOn, url }) => {
 
         console.log(popupPosition);
 
-
         var popupText =
-         "<h4><strong>"+JSON.stringify(json.tip_via) +JSON.stringify(json.address)+", "+JSON.stringify(json.portalNumber) +"</strong></h4>"+
-          "<p>"+
+          "<h4><strong>" +
+          JSON.stringify(json.tip_via) +
+          JSON.stringify(json.address) +
+          ", " +
+          JSON.stringify(json.portalNumber) +
+          "</strong></h4>" +
+          "<p>" +
           JSON.stringify(json.muni) +
           ", " +
           JSON.stringify(json.province) +
@@ -66,22 +67,10 @@ const TileLayer = ({ source, zIndex = 0, geoOn, url }) => {
           JSON.stringify(json.postalCode) +
           ", " +
           JSON.stringify(json.comunidadAutonoma) +
-        "</p>"
-      
+          "</p>";
 
-        var content = document.getElementById('popup-content');
-        content.innerHTML=popupText
-       /*
-        let overlay = new Overlay({
-          element: document.getElementById("popup"),
-          autoPan: true,
-          autoPanAnimation: {
-            duration: 250,
-          },
-        });
-        
-        map.addOverlay(overlay)
-        */
+        var content = document.getElementById("popup-content");
+        content.innerHTML = popupText;
         overlay.setPosition(popupPosition);
       })
       .catch((err) => console.error(err.message));
@@ -110,33 +99,20 @@ const TileLayer = ({ source, zIndex = 0, geoOn, url }) => {
     if (!map) return;
     console.log("Activado? " + allowRevGeo);
 
-
-    let overlay = new Overlay({
-      element: document.getElementById("popup"),
-      autoPan: true,
-      autoPanAnimation: {
-        duration: 250,
-      },
-    });
-    //closerButton.onClick(e => overlay.setPosition(null))
     map.addOverlay(overlay);
-
 
     if (allowRevGeo === true) {
       //obtenemos la uniqueKey del evento
       var evtKey = map.on("singleclick", (evt) => {
-        reverseGeocode(evt, gvSigUrl, overlay); 
+        reverseGeocode(evt, gvSigUrl, overlay);
       });
-     
-      setKeyEvent(evtKey);
-      
-    }
 
+      setKeyEvent(evtKey);
+    }
     if (allowRevGeo === false) {
       //función que deshace el evento pasandole su key
       unByKey(keyEvent);
       overlay.setPosition(null);
-      
 
       /* ESTOS MÉTODOS NO FUNCIONAN
         map.removeEventListener('singleclick');
@@ -145,8 +121,6 @@ const TileLayer = ({ source, zIndex = 0, geoOn, url }) => {
         })
         */
     }
-  
-
     return () => {
       if (map) {
         map.un("singleclick", (evt) => {

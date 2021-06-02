@@ -4,30 +4,78 @@ import OLTileLayer from "ol/layer/Tile";
 import { fromLonLat, toLonLat } from "ol/proj";
 import { unByKey } from "ol/Observable";
 
-const TileLayer = ({ source, zIndex = 0, geoOn, url, center }) => {
+const TileLayer = ({
+  source,
+  zIndex = 0,
+  geoOn,
+  url,
+  center,
+  setCenter,
+  zoom,
+  setZoom,
+}) => {
   const { map, overlay } = useContext(MapContext);
 
   const allowRevGeo = geoOn;
   const gvSigUrl = url;
   const [keyEvent, setKeyEvent] = useState();
+  const [type, setType] = useState("");
+
+  const selectProveedor = async (evt, url, overlay) => {
+    let coord = evt.coordinate;
+
+    let response = await fetch(url + "/geocoding/get_providers_activated/");
+    let json = await response.json();
+    console.log(json.types);
+
+    let proveedores = json.types;
+
+    let list = "";
+
+    for (let i = 0; i < proveedores.length; i++) {
+      list =
+        list + "<li key=" + i + " class='liProv'>" + proveedores[i] + "</li>";
+    }
+    var popupProv =
+      "<h4><strong>Proveedor de búsqueda</strong></h4>" +
+      "<ul>" +
+      list +
+      "</ul>";
+
+    var content = document.getElementById("popup-content");
+    content.innerHTML = popupProv;
+
+    overlay.setPosition(coord);
+
+    var lis = document.getElementsByClassName("liProv");
+
+    Array.from(lis).forEach((li) => {
+      var tipo = li.innerHTML;
+      console.log(tipo);
+      li.addEventListener("click", () => {
+        overlay.setPosition("");
+        reverseGeocode(coord, tipo, gvSigUrl, overlay);
+      });
+    });
+  };
 
   //--------función geocodificador inverso--------------
 
-  const reverseGeocode = (evt, url, overlay) => {
-    var coord = toLonLat(evt.coordinate);
+  const reverseGeocode = (coord, tipo, url, overlay) => {
+    var coordenadas = toLonLat(coord);
+    console.log(tipo);
     console.log(coord);
-    var type = "new_cartociudad";
 
     let formBody = [];
 
-    var encodedKeyCoord = encodeURIComponent(coord);
+    var encodedKeyCoord = encodeURIComponent(coordenadas);
     formBody.push("coord=" + encodedKeyCoord);
 
-    var encodedKeyType = encodeURIComponent(type);
+    var encodedKeyType = encodeURIComponent(tipo);
     formBody.push("type=" + encodedKeyType);
 
     formBody = formBody.join("&");
-    //coord=-2.774274873462422%2C41.56326798105209&type=new_cartociudad
+
     console.log("FORM_BODY==> " + formBody);
 
     return fetch(url + "/geocoding/get_location_address/", {
@@ -45,13 +93,10 @@ const TileLayer = ({ source, zIndex = 0, geoOn, url, center }) => {
       .then((json) => {
         console.log("get_location_address: " + JSON.stringify(json));
 
-        //setCenter(fromLonLat([json.lng,json.lat]))
-        //setZoom(14)
+        setCenter([json.lng, json.lat]);
+        setZoom(15);
 
         let popupPosition = fromLonLat([json.lng, json.lat]);
-
-        console.log(popupPosition);
-
         var popupText =
           "<h4><strong>" +
           JSON.stringify(json.tip_via) +
@@ -69,8 +114,8 @@ const TileLayer = ({ source, zIndex = 0, geoOn, url, center }) => {
           JSON.stringify(json.comunidadAutonoma) +
           "</p>";
 
-        var content = document.getElementById("popup-content");
-        content.innerHTML = popupText;
+        var contentLocation = document.getElementById("popup-content");
+        contentLocation.innerHTML = popupText;
         overlay.setPosition(popupPosition);
       })
       .catch((err) => console.error(err.message));
@@ -104,9 +149,9 @@ const TileLayer = ({ source, zIndex = 0, geoOn, url, center }) => {
     if (allowRevGeo === true) {
       //obtenemos la uniqueKey del evento
       var evtKey = map.on("singleclick", (evt) => {
-        reverseGeocode(evt, gvSigUrl, overlay);
+        selectProveedor(evt, gvSigUrl, overlay);
       });
-
+      console.log(type);
       setKeyEvent(evtKey);
     }
     if (allowRevGeo === false) {
@@ -124,7 +169,8 @@ const TileLayer = ({ source, zIndex = 0, geoOn, url, center }) => {
     return () => {
       if (map) {
         map.un("singleclick", (evt) => {
-          reverseGeocode(evt, gvSigUrl);
+          selectProveedor(evt, gvSigUrl, overlay);
+          reverseGeocode(gvSigUrl, overlay);
         });
       }
     };

@@ -20,7 +20,7 @@ import { faMap, faMapMarkedAlt } from "@fortawesome/free-solid-svg-icons";
 
 const SearchBox = () => {
   const [options, setOptions] = useState();
-  const [gvSigUrl, setGvSigUrl] = useState("https://localhost/gvsigonline");
+  const [gvSigUrl, setGvSigUrl] = useState("http://localhost/gvsigonline");
   const [center, setCenter] = useState([-3.70256, 40.4165]);
   const [zoom, setZoom] = useState(6);
   const [searchText, setSearchText] = useState("");
@@ -28,6 +28,7 @@ const SearchBox = () => {
   const [showLayer, setShowLayer] = useState(false);
   const [geojsonObject, setGeojsonObject] = useState();
   const [reverseGeocodingOn, setReverseGeocodingOn] = useState(false);
+  const [proveedores,setProveedores]=useState()
 
   const renderTitle = (title) => <span>{title}</span>;
 
@@ -49,6 +50,7 @@ const SearchBox = () => {
   const lookup = async (userInput) => {
     const candidatos = [];
 
+    if (userInput.length >= 3){
     let response = await fetch(
       gvSigUrl + "/geocoding/search_candidates/?limit=10&q=" + userInput
     );
@@ -57,16 +59,18 @@ const SearchBox = () => {
     console.log(json);
     let results = json.suggestions;
     setResultsSearch(results);
-
+    }
     if (results.length > 0) {
       //recogemos los proveedores de búsqueda que están activos
-      let proveedores = [];
+      let proveedor = [];
       results.map((suggest) => {
-        proveedores.push(suggest.category);
+        proveedor.push(suggest.category);
       });
 
-      let uniqueProveedores = [...new Set(proveedores)];
+      let uniqueProveedores = [...new Set(proveedor)];
       console.log("Proveedores: " + uniqueProveedores);
+
+      setProveedores(uniqueProveedores)
 
       //recogemos para cada proveedor sus candidatos de búsqueda
       uniqueProveedores.map((prov) => {
@@ -252,6 +256,12 @@ const SearchBox = () => {
               zIndex={0}
               geoOn={reverseGeocodingOn}
               url={gvSigUrl}
+              center={fromLonLat(center)}
+              setCenter = {setCenter}
+              zoom= {zoom}
+              setZoom = {setZoom}
+              provee = {proveedores}
+
             />
             {showLayer && (
               <VectorLayer
@@ -264,7 +274,6 @@ const SearchBox = () => {
               />
             )}
           </Layers>
-          {/* <Overlay id="popups" position={popupPosition} positioning="center-center" element={popupElement} offset={[0,0]}/> */}
         </Map>
       </div>
     </div>

@@ -12,11 +12,10 @@ import { fromLonLat, get, toLonLat } from "ol/proj";
 import { Layers, TileLayer, VectorLayer } from "../Layers";
 import { Circle as CircleStyle, Fill, Stroke, Style, Icon } from "ol/style";
 import GeoJSON from "ol/format/GeoJSON";
-
-//instalamos paquete @fortawesome/react-fontawesome' para usar iconos de
-//https://fontawesome.com/icons?d=gallery&p=2
+/*instalamos paquete @fortawesome/react-fontawesome' para usar iconos de
+https://fontawesome.com/icons?d=gallery&p=2*/
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMap, faMapMarkedAlt } from "@fortawesome/free-solid-svg-icons";
+import {faMapMarkedAlt } from "@fortawesome/free-solid-svg-icons";
 
 const SearchBox = () => {
   const [options, setOptions] = useState();
@@ -28,8 +27,9 @@ const SearchBox = () => {
   const [showLayer, setShowLayer] = useState(false);
   const [geojsonObject, setGeojsonObject] = useState();
   const [reverseGeocodingOn, setReverseGeocodingOn] = useState(false);
-  const [proveedores,setProveedores]=useState()
+  const [proveedores, setProveedores] = useState();
 
+  // ----------- Funciones para renderizar los candidatos en la lista ----------
   const renderTitle = (title) => <span>{title}</span>;
 
   const renderItem = (s) => ({
@@ -46,50 +46,54 @@ const SearchBox = () => {
       </div>
     ),
   });
+  // ----------------
 
+  //-------- Función búsqueda de candidatos con llamada a API 'search_candidates'--------
   const lookup = async (userInput) => {
     const candidatos = [];
 
-    if (userInput.length >= 3){
-    let response = await fetch(
-      gvSigUrl + "/geocoding/search_candidates/?limit=10&q=" + userInput
-    );
+    if (userInput.length >= 3) {
+      let response = await fetch(
+        gvSigUrl + "/geocoding/search_candidates/?limit=10&q=" + userInput
+      );
 
-    let json = await response.json();
-    console.log(json);
-    let results = json.suggestions;
-    setResultsSearch(results);
-    
-    if (results.length > 0) {
-      //recogemos los proveedores de búsqueda que están activos
-      let proveedor = [];
-      results.map((suggest) => {
-        proveedor.push(suggest.category);
-      });
+      let json = await response.json();
+      console.log(json);
+      let results = json.suggestions;
+      setResultsSearch(results);
 
-      let uniqueProveedores = [...new Set(proveedor)];
-      console.log("Proveedores: " + uniqueProveedores);
-
-      setProveedores(uniqueProveedores)
-
-      //recogemos para cada proveedor sus candidatos de búsqueda
-      uniqueProveedores.map((prov) => {
-        const arrayOptions = [];
+      if (results.length > 0) {
+        //recogemos los proveedores de búsqueda que están activos
+        let proveedor = [];
         results.map((suggest) => {
-          if (suggest.category === prov) {
-            arrayOptions.push(renderItem(suggest));
-          }
+          proveedor.push(suggest.category);
         });
-        candidatos.push({
-          label: renderTitle(prov),
-          options: arrayOptions,
+
+        let uniqueProveedores = [...new Set(proveedor)];
+        console.log("Proveedores: " + uniqueProveedores);
+
+        setProveedores(uniqueProveedores);
+
+        //recogemos para cada proveedor sus candidatos de búsqueda
+        uniqueProveedores.map((prov) => {
+          const arrayOptions = [];
+          results.map((suggest) => {
+            if (suggest.category === prov) {
+              arrayOptions.push(renderItem(suggest));
+            }
+          });
+          candidatos.push({
+            label: renderTitle(prov),
+            options: arrayOptions,
+          });
         });
-      });
-    }
-    setOptions(candidatos);
+      }
+      setOptions(candidatos);
     }
   };
+  //--------
 
+  //-------- FUNCIÓN PARA OBTENER DATOS DE LA LOCALIZACIÓN SELECCIONADA 'find_candidate'---------
   // Con Geolookup las opciones de la lista () const getSuggestLabel = (s) => return s.address;};
   // EN ESTE CASO NUESTRA LISTA NO SON OBJECTOS, ES UN TITULO(Texto) CON LA DIRECCIÓN DEL OBJETO
 
@@ -167,8 +171,9 @@ const SearchBox = () => {
       .catch((err) => console.error(err.message));
     // return new Promise((resolve, reject) => {});
   };
+  //--------
 
-  //función borrar datos de búsqueda y volver a zoom inicial
+  //-------- Función borrar datos de búsqueda y volver a zoom inicial
   const onCLickDelete = () => {
     setCenter([-3.70256, 40.4165]);
     setZoom(6);
@@ -177,6 +182,7 @@ const SearchBox = () => {
     setResultsSearch();
     setShowLayer(false);
   };
+  //--------
 
   return (
     <div className="App">
@@ -199,25 +205,24 @@ const SearchBox = () => {
             geocode(value);
           }}
         >
-          
-            <Input
-              size="large"
-              placeholder="Buscar..."
-              suffix={
-                resultsSearch ? (
-                  <Tooltip title="Borrar">
-                    <Button
-                      size="small"
-                      shape="circle"
-                      icon={<ClearOutlined />}
-                      onClick={onCLickDelete}
-                    />
-                  </Tooltip>
-                ) : (
-                  ""
-                )
-              }
-              /*
+          <Input
+            size="large"
+            placeholder="Buscar..."
+            suffix={
+              resultsSearch ? (
+                <Tooltip title="Borrar">
+                  <Button
+                    size="small"
+                    shape="circle"
+                    icon={<ClearOutlined />}
+                    onClick={onCLickDelete}
+                  />
+                </Tooltip>
+              ) : (
+                ""
+              )
+            }
+            /*
               addonAfter={           
                 <Tooltip title="Geocodificador inverso">
                   <Button
@@ -233,7 +238,7 @@ const SearchBox = () => {
                 </Tooltip>
               }
               */
-            />
+          />
         </AutoComplete>
 
         <Tooltip title="Geocodificador inverso">
@@ -258,11 +263,10 @@ const SearchBox = () => {
               geoOn={reverseGeocodingOn}
               url={gvSigUrl}
               center={fromLonLat(center)}
-              setCenter = {setCenter}
-              zoom= {zoom}
-              setZoom = {setZoom}
-              provee = {proveedores}
-
+              setCenter={setCenter}
+              zoom={zoom}
+              setZoom={setZoom}
+              provee={proveedores}
             />
             {showLayer && (
               <VectorLayer
@@ -292,6 +296,7 @@ let styles = {
       }),
     }),
   }),
+  // probé a cambiar el marcdador por un imagen .png pero no me lo mostraba en el mapa. 
   icon: new Style({
     image: new Icon({
       anchor: [0.5, 46],

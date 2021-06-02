@@ -59,7 +59,7 @@ const SearchBox = () => {
     console.log(json);
     let results = json.suggestions;
     setResultsSearch(results);
-    }
+    
     if (results.length > 0) {
       //recogemos los proveedores de búsqueda que están activos
       let proveedor = [];
@@ -87,6 +87,7 @@ const SearchBox = () => {
       });
     }
     setOptions(candidatos);
+    }
   };
 
   // Con Geolookup las opciones de la lista () const getSuggestLabel = (s) => return s.address;};

@@ -5,10 +5,18 @@ import "ol/ol.css";
 import * as ol from "ol";
 import Overlay from "ol/Overlay";
 
-const Map = ({ children, zoom, center }) => {
+const Map = ({ children, zoom, center}) => {
   const mapRef = useRef();
   const [map, setMap] = useState(null);
   const [overlay, setOverlay] = useState(null);
+  const [type,setType]= useState();
+
+  const handleonclicktype = (value) => {
+
+    alert(value)
+
+  }
+  
 
   // on component mount
   useEffect(() => {
@@ -44,13 +52,13 @@ const Map = ({ children, zoom, center }) => {
     map.getView().setCenter(center);
   }, [center]);
   return (
-    <MapContext.Provider value={{ map, overlay }}>
+    <MapContext.Provider value={{ map, overlay}}>
       <div ref={mapRef} className="ol-map">
         {children}
       </div>
       <div id="popup" className="ol-popup">
-        <button id="close-button" class="ol-popup-closer" onClick={e => overlay.setPosition(null)} />
-        <div id="popup-content"></div>
+        <button id="close-button" className="ol-popup-closer" onClick={e => overlay.setPosition(null)} />
+        <div id="popup-content" className="popup-content"></div>
       </div>
     </MapContext.Provider>
   );

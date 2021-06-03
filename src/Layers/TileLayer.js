@@ -13,9 +13,11 @@ const TileLayer = ({
   setCenter,
   zoom,
   setZoom,
+  provee,
 }) => {
   const { map, overlay } = useContext(MapContext);
 
+  const proveedores = provee;
   const allowRevGeo = geoOn;
   const gvSigUrl = url;
   const [keyEvent, setKeyEvent] = useState();
@@ -24,12 +26,13 @@ const TileLayer = ({
   const selectProveedor = async (evt, url, overlay) => {
     let coord = evt.coordinate;
 
+    /*
     let response = await fetch(url + "/geocoding/get_providers_activated/");
     let json = await response.json();
     console.log(json.types);
 
     let proveedores = json.types;
-
+*/
     let list = "";
 
     for (let i = 0; i < proveedores.length; i++) {

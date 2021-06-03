@@ -15,7 +15,7 @@ import GeoJSON from "ol/format/GeoJSON";
 /*instalamos paquete @fortawesome/react-fontawesome' para usar iconos de
 https://fontawesome.com/icons?d=gallery&p=2*/
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {faMapMarkedAlt } from "@fortawesome/free-solid-svg-icons";
+import { faMapMarkedAlt } from "@fortawesome/free-solid-svg-icons";
 
 const SearchBox = () => {
   const [options, setOptions] = useState();
@@ -27,7 +27,7 @@ const SearchBox = () => {
   const [showLayer, setShowLayer] = useState(false);
   const [geojsonObject, setGeojsonObject] = useState();
   const [reverseGeocodingOn, setReverseGeocodingOn] = useState(false);
-  const [proveedores, setProveedores] = useState();
+  const [proveedores, setProveedores] = useState([]);
 
   // ----------- Funciones para renderizar los candidatos en la lista ----------
   const renderTitle = (title) => <span>{title}</span>;
@@ -64,6 +64,31 @@ const SearchBox = () => {
 
       if (results.length > 0) {
         //recogemos los proveedores de búsqueda que están activos
+
+        //llamada a la API para recoger los proveedores activos
+        let response = await fetch(
+          gvSigUrl + "/geocoding/get_providers_activated/"
+        );
+        let json = await response.json();
+        console.log("Proveedores" + JSON.stringify(json));
+        let provee = json.types;
+
+        setProveedores(provee);
+
+        //recogemos para cada proveedor sus candidatos de búsqueda
+        provee.map((prov) => {
+          const arrayOptions = [];
+          results.map((suggest) => {
+            if (suggest.category === prov) {
+              arrayOptions.push(renderItem(suggest));
+            }
+          });
+          candidatos.push({
+            label: renderTitle(prov),
+            options: arrayOptions,
+          });
+        });
+        /* SIN LLAMAR A LA API para recoger los proveedores activos
         let proveedor = [];
         results.map((suggest) => {
           proveedor.push(suggest.category);
@@ -73,7 +98,7 @@ const SearchBox = () => {
         console.log("Proveedores: " + uniqueProveedores);
 
         setProveedores(uniqueProveedores);
-
+        
         //recogemos para cada proveedor sus candidatos de búsqueda
         uniqueProveedores.map((prov) => {
           const arrayOptions = [];
@@ -87,6 +112,7 @@ const SearchBox = () => {
             options: arrayOptions,
           });
         });
+        */
       }
       setOptions(candidatos);
     }
@@ -296,7 +322,7 @@ let styles = {
       }),
     }),
   }),
-  // probé a cambiar el marcdador por un imagen .png pero no me lo mostraba en el mapa. 
+  // probé a cambiar el marcdador por un imagen .png pero no me lo mostraba en el mapa.
   icon: new Style({
     image: new Icon({
       anchor: [0.5, 46],
